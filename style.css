@@ -1,0 +1,326 @@
+:root {
+    --bg-dark: #0f111a;
+    --bg-lighter: #1a1c25;
+    --accent: #7c4dff;
+    --accent-hover: #9575cd;
+    --text-main: #e0e0e0;
+    --text-dim: #9499b0;
+    --border: #2d2f3f;
+    --success: #00e676;
+    --error: #ff5252;
+    --sidebar-width: 60px;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    background-color: var(--bg-dark);
+    color: var(--text-main);
+    height: 100vh;
+    display: flex;
+    overflow: hidden;
+}
+
+/* Sidebar Nav */
+.sidebar {
+    width: var(--sidebar-width);
+    background: var(--bg-lighter);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 0;
+    gap: 20px;
+    z-index: 100;
+}
+
+.side-icon {
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: 0.2s;
+    padding: 10px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.side-icon:hover,
+.side-icon.active {
+    color: var(--accent);
+    background: rgba(124, 77, 255, 0.1);
+}
+
+/* Main Content */
+.main-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.app-header {
+    height: 60px;
+    background: var(--bg-lighter);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+    font-size: 1.1rem;
+    letter-spacing: 1px;
+}
+
+.controls {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+/* Buttons */
+button {
+    padding: 8px 14px;
+    border-radius: 6px;
+    border: none;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: inherit;
+    font-size: 13px;
+}
+
+.btn-primary {
+    background: var(--accent);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: var(--accent-hover);
+    transform: translateY(-1px);
+}
+
+.btn-secondary {
+    background: #2d2f3f;
+    color: var(--text-main);
+}
+
+.btn-secondary:hover {
+    background: #3d3f4f;
+}
+
+/* Workspace Grid */
+.workspace {
+    flex: 1;
+    display: flex;
+    position: relative;
+    overflow: hidden;
+}
+
+.pane {
+    display: flex;
+    flex-direction: column;
+    min-width: 150px;
+    background: var(--bg-dark);
+    overflow: hidden;
+    /* Fix scroll issue */
+}
+
+.pane-header {
+    padding: 8px 16px;
+    background: var(--bg-lighter);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    letter-spacing: 1px;
+}
+
+/* Editor Container Container */
+#editor-container {
+    flex: 1;
+    overflow: hidden;
+    min-height: 0;
+    /* Crucial for flex nested scrolling */
+    display: flex;
+    flex-direction: column;
+}
+
+/* CodeMirror Customization */
+.CodeMirror {
+    flex: 1;
+    font-family: 'Fira Code', monospace;
+    font-size: 14px;
+    height: 100% !important;
+}
+
+/* Dynamic Theme Support Fix */
+.CodeMirror-gutters {
+    border-right: 1px solid var(--border);
+    background-color: inherit;
+}
+
+/* Resizer */
+.resizer {
+    width: 4px;
+    cursor: col-resize;
+    background: var(--border);
+    transition: 0.2s;
+}
+
+.resizer:hover {
+    background: var(--accent);
+}
+
+/* Output Area */
+#output {
+    flex: 1;
+    padding: 15px;
+    font-family: 'Fira Code', monospace;
+    overflow-y: auto;
+    font-size: 13px;
+    line-height: 1.6;
+    background: #0a0c14;
+}
+
+.log-entry {
+    margin-bottom: 4px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    padding-bottom: 4px;
+    white-space: pre-wrap;
+}
+
+.log-error {
+    color: var(--error);
+    background: rgba(255, 82, 82, 0.05);
+    padding-left: 5px;
+}
+
+.log-warn {
+    color: #ffd740;
+}
+
+.log-time {
+    color: var(--accent);
+    font-size: 0.7rem;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+/* Bottom Status Bar */
+.status-bar {
+    height: 28px;
+    background: var(--bg-lighter);
+    border-top: 1px solid var(--border);
+    color: var(--text-dim);
+    display: flex;
+    align-items: center;
+    padding: 0 15px;
+    font-size: 11px;
+    justify-content: space-between;
+}
+
+/* Snippets Sidebar */
+#snippets-menu {
+    position: absolute;
+    left: var(--sidebar-width);
+    top: 60px;
+    bottom: 28px;
+    width: 260px;
+    background: var(--bg-lighter);
+    border-right: 1px solid var(--border);
+    z-index: 50;
+    transform: translateX(-110%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 20px;
+    box-shadow: 20px 0 50px rgba(0, 0, 0, 0.5);
+}
+
+#snippets-menu.open {
+    transform: translateX(0);
+}
+
+.snippet-item {
+    padding: 12px;
+    background: var(--bg-dark);
+    border-radius: 6px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    border: 1px solid transparent;
+    transition: 0.2s;
+}
+
+.snippet-item:hover {
+    border-color: var(--accent);
+    background: #1a1c25;
+}
+
+select.btn-secondary {
+    appearance: none;
+    padding-right: 30px;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+}
+
+/* Tabs */
+.editor-tabs,
+.output-tabs {
+    display: flex;
+    gap: 5px;
+}
+
+.tab-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    padding: 4px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    transition: 0.2s;
+}
+
+.tab-btn:hover {
+    color: var(--text-main);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.tab-btn.active {
+    background: var(--accent);
+    color: white;
+}
+
+/* Output Content Toggles */
+.output-content {
+    display: none;
+    flex: 1;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.output-content.active {
+    display: flex;
+}

@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+    <title>CQ Web builder | CoffeeQuote</title>
+
+    <!-- Core CodeMirror -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.12/codemirror.min.css" />
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.12/addon/hint/show-hint.min.css" />
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.12/addon/dialog/dialog.min.css" />
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.12/addon/search/matchesonscrollbar.min.css">
+
+    <!-- Core CodeMirror -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.12/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.12/addon/edit/closebrackets.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.12/addon/hint/show-hint.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.12/addon/hint/javascript-hint.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.12/addon/dialog/dialog.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.12/addon/search/searchcursor.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.12/addon/search/search.min.js"></script>
+
+    <!-- CodeMirror Modes -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.12/mode/xml/xml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.12/mode/css/css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.12/mode/javascript/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.12/mode/htmlmixed/htmlmixed.min.js"></script>
+
+    <!-- Default Theme -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.12/theme/dracula.min.css" />
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Fira+Code:wght@400;500&display=swap"
+        rel="stylesheet">
+
+    <link href="style.css" rel="stylesheet" />
+
+</head>
+
+<body>
+    <!-- Sidebar  -->
+    <div class="sidebar">
+        <div class="side-icon active" title="Editor">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
+                <polyline points="14 2 14 8 20 8" /></svg>
+        </div>
+        <div class="side-icon" id="toggle-snippets" title="Saved Snippets">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" /></svg>
+        </div>
+        <div class="side-icon" id="format-btn" title="Format Code (Beautify)">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="16 18 22 12 16 6" />
+                <polyline points="8 6 2 12 8 18" /></svg>
+        </div>
+        <div class="side-icon" id="download-btn" title="Export .js File">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" /></svg>
+        </div>
+    </div>
+
+    <!-- Snippets Menu -->
+    <div id="snippets-menu">
+        <h3 style="margin-top:0; font-size: 1.1rem; color: var(--accent);">Your Library</h3>
+        <div id="snippets-list" style="max-height: 70vh; overflow-y: auto;"></div>
+        <button class="btn-primary" style="width:100%; margin-top:20px; justify-content: center;" id="save-snippet">Save
+            Current Work</button>
+    </div>
+
+    <!-- Main Wrapper -->
+    <main class="main-wrapper">
+        <!-- App Header -->
+        <header class="app-header">
+            <div class="logo">
+                <span style="color: var(--accent); font-size: 1.5rem;">⚡</span> CQ Web Builder <span
+                    style="font-weight: 300; opacity: 0.7;">Pro</span>
+            </div>
+            <div class="controls">
+                <select id="theme-select" class="btn-secondary">
+                    <option value="dracula">Dracula</option>
+                    <option value="monokai">Monokai</option>
+                    <option value="material-ocean">Material Ocean</option>
+                    <option value="nord">Nord</option>
+                    <option value="midnight">Midnight</option>
+                    <option value="abcdef">ABCDEF</option>
+                    <option value="ayu-mirage">Ayu Mirage</option>
+                </select>
+                <button class="btn-secondary" id="clear-btn">Clear</button>
+                <button class="btn-primary" id="run-btn">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                        <polygon points="5 3 19 12 5 21 5 3" /></svg>
+                    Run Code
+                </button>
+            </div>
+        </header>
+
+        <!-- Workspace -->
+        <div class="workspace">
+            <section class="pane" id="code-pane" style="flex: 1;">
+                <div class="pane-header">
+                    <div class="editor-tabs">
+                        <button class="tab-btn active" data-type="html">HTML</button>
+                        <button class="tab-btn" data-type="css">CSS</button>
+                        <button class="tab-btn" data-type="js">JS</button>
+                    </div>
+                </div>
+                <div id="editor-container" style="flex:1;"></div>
+            </section>
+
+            <div class="resizer" id="drag-bar"></div>
+
+            <section class="pane" id="output-pane" style="width: 35%;">
+                <div class="pane-header">
+                    <div class="output-tabs">
+                        <button class="tab-btn active" data-target="preview">Preview</button>
+                        <button class="tab-btn" data-target="console">Console</button>
+                    </div>
+                    <button id="copy-output"
+                        style="background:transparent; border:none; color:var(--text-dim); cursor:pointer; font-size: 10px;">COPY</button>
+                </div>
+                <!-- Preview Area -->
+                <div id="preview-container" class="output-content active" style="flex:1; background: white;">
+                    <iframe id="preview-frame" style="width:100%; height:100%; border:none;"></iframe>
+                </div>
+                <!-- Console Area -->
+                <div id="output" class="output-content"></div>
+            </section>
+        </div>
+
+        <!-- Status Bar -->
+        <footer class="status-bar">
+            <div id="cursor-pos">Ln 1, Col 1</div>
+            <div>UTF-8 • JavaScript (ES6+) • Ctrl+F to Search</div>
+        </footer>
+    </main>
+
+    <!-- CodeMirror & Addons -->
+
+
+    <script src="script.js"></script>
+
+    <script>
+        // Live Reload | Developer Mode 
+        (function connect() {
+            console.log("🔄 Connecting to Live Reload...");
+            const ws = new WebSocket("ws://localhost:8765");
+
+            ws.onopen = () => console.log("✅ Live Reload Connected");
+
+            ws.onmessage = () => {
+                console.log("⚡ Refreshing...");
+                location.reload();
+            };
+
+            ws.onclose = () => {
+                console.log("❌ Connection lost. Reconnecting in 1s...");
+                // Try to reconnect in 1 second
+                setTimeout(connect, 1000);
+            };
+
+            ws.onerror = (err) => {
+                console.error("WebSocket error", err);
+                ws.close();
+            };
+        })();
+    </script>
+</body>
+
+</html>
