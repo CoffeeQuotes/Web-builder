@@ -1,4 +1,4 @@
-# ⚡ CQ JSpad
+# ⚡ CoffeeQutes WebBuilder
 > *CoffeeQuote WebBuilder - The Ultimate Web Builder & Scratchpad*
 
 CoffeeQutes WebBuilder is a lightweight, feature-rich Web Builder aimed at developers who need a quick, beautiful environment to test HTML, CSS, and JavaScript snippets, or build entire components without setting up a complex project.
@@ -16,7 +16,7 @@ CoffeeQutes WebBuilder is a lightweight, feature-rich Web Builder aimed at devel
 ---
 
 ## 🚀 Quick Start (Easiest)
-You don't need to install anything to use CQ JSpad!
+You don't need to install anything to use CoffeeQutes WebBuilder!
 
 1.  Navigate to the project folder.
 2.  **Double-click** the `index.html` file.
@@ -25,7 +25,7 @@ You don't need to install anything to use CQ JSpad!
 ---
 
 ## 🛠️ Developer Mode (Smooth Experience)
-If you want to modify the source code of CQ JSpad itself (edit `script.js` or `style.css`) and see changes instantly without manually refreshing, run the included Live Server.
+If you want to modify the source code of CoffeeQutes WebBuilder itself (edit `script.js` or `style.css`) and see changes instantly without manually refreshing, run the included Live Server.
 
 ### Prerequisites
 *   **Python** installed ([Download Here](https://www.python.org/downloads/)).
