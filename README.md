@@ -1,7 +1,7 @@
-# ⚡ CoffeeQutes WebBuilder
-> *CoffeeQuote WebBuilder - The Ultimate Web Builder & Scratchpad*
+# ⚡ CoffeeQuotes WebBuilder
+> *CoffeeQuotes WebBuilder - The Ultimate Web Builder & Scratchpad*
 
-CoffeeQutes WebBuilder is a lightweight, feature-rich Web Builder aimed at developers who need a quick, beautiful environment to test HTML, CSS, and JavaScript snippets, or build entire components without setting up a complex project.
+CoffeeQuotes WebBuilder is a lightweight, feature-rich Web Builder aimed at developers who need a quick, beautiful environment to test HTML, CSS, and JavaScript snippets, or build entire components without setting up a complex project.
 
 ## ✨ Features
 
