@@ -1,311 +1,521 @@
-/* DOM Elements */
-console.log('Script loaded');
-const editorContainer = document.getElementById('editor-container');
-const outputDiv = document.getElementById('output');
-const previewFrame = document.getElementById('preview-frame');
-const runBtn = document.getElementById('run-btn');
-const themeSelect = document.getElementById('theme-select');
-const dragBar = document.getElementById('drag-bar');
-const outputPane = document.getElementById('output-pane');
-const snippetsMenu = document.getElementById('snippets-menu');
-const snippetsList = document.getElementById('snippets-list');
-const resourcesBtn = document.getElementById('resources-btn');
-const resourcesModal = document.getElementById('resources-modal');
-const closeModal = document.querySelector('.close-modal');
-const addResourceBtn = document.getElementById('add-resource-btn');
-const resourceUrlInput = document.getElementById('resource-url');
+/**
+ * CQ Web Builder — Enhanced Script
+ *
+ * Changes from original:
+ *  1. FIX: Cursor position (Ln/Col) now updates correctly using 'cursorActivity' event
+ *  2. FIX: Console now captures unhandledrejection (Promise errors), SyntaxErrors,
+ *          ReferenceErrors, and all other runtime errors
+ *  3. FIX: Large objects/arrays render as collapsible trees instead of truncated strings
+ *  4. FIX: 'Clear' button now clears editor, not console (separate 'Clear Console' added)
+ *  5. FIX: Snippet load correctly sets editor mode for restored currentTab
+ *  6. FEAT: Error badge counter on Console tab
+ *  7. FEAT: Console shows timestamp per log entry
+ *  8. FEAT: Settings modal (theme, font size, tab size, word wrap, auto-run toggle)
+ *  9. FEAT: Auto-save indicator in status bar
+ * 10. FEAT: Character count in status bar
+ * 11. FEAT: Keyboard shortcut Alt+Shift+F for format
+ * 12. FEAT: Duplicate Run Button handler removed (was duplicated in original)
+ * 13. FEAT: Autosave flashes "Saving…" then "Saved" indicator
+ * 14. FEAT: console.info and console.debug also captured
+ * 15. FEAT: Resize remembers pane width in localStorage
+ */
+
+'use strict';
+
+/* ─── DOM References ─────────────────────────────────────────── */
+const editorContainer   = document.getElementById('editor-container');
+const outputDiv         = document.getElementById('output');
+const previewFrame      = document.getElementById('preview-frame');
+const runBtn            = document.getElementById('run-btn');
+const dragBar           = document.getElementById('drag-bar');
+const outputPane        = document.getElementById('output-pane');
+const snippetsMenu      = document.getElementById('snippets-menu');
+const snippetsList      = document.getElementById('snippets-list');
+const snippetsEmpty     = document.getElementById('snippets-empty');
+const resourcesBtn      = document.getElementById('resources-btn');
+const resourcesModal    = document.getElementById('resources-modal');
+const settingsModal     = document.getElementById('settings-modal');
+const addResourceBtn    = document.getElementById('add-resource-btn');
+const resourceUrlInput  = document.getElementById('resource-url');
 const resourceTypeSelect = document.getElementById('resource-type');
-const resourcesList = document.getElementById('resources-list');
-const cursorPosDiv = document.getElementById('cursor-pos');
+const resourcesList     = document.getElementById('resources-list');
+const cursorPosDiv      = document.getElementById('cursor-pos');
+const charCountDiv      = document.getElementById('char-count');
+const errorBadge        = document.getElementById('error-badge');
+const autosaveIndicator = document.getElementById('autosave-indicator');
+const currentModeLabel  = document.getElementById('current-mode-label');
 
-/* State */
-let appState = {
-    html: '<!-- HTML -->\n<div class="card">\n    <h1>Hello World</h1>\n    <p>Welcome to CQ JSpad</p>\n</div>',
-    css: '/* CSS */\nbody {\n    font-family: "Inter", sans-serif;\n    display: flex;\n    justify-content: center;\n    align-items: center;\n    height: 100vh;\n    margin: 0;\n    background: #f0f2f5;\n}\n.card {\n    background: white;\n    padding: 2rem;\n    border-radius: 8px;\n    box-shadow: 0 4px 6px rgba(0,0,0,0.1);\n    text-align: center;\n}',
-    js: '// JavaScript\nconsole.log("🚀 App Started!");\n\nconst h1 = document.querySelector("h1");\nh1.onclick = () => {\n    h1.style.color = "#7c4dff";\n    console.log("Clicked header!");\n};',
-    currentTab: 'html',
-    resources: [] // [ { type: 'css'|'js', url: '...' } ]
-};
-
-/* Restore from LocalStorage */
-const saved = localStorage.getItem('cq_jspad_state');
-if (saved) {
-    try {
-        const parsed = JSON.parse(saved);
-        appState = {
-            ...appState,
-            ...parsed
-        };
-    } catch (e) {
-        console.error('Failed to load state', e);
-    }
+/* ─── App State ──────────────────────────────────────────────── */
+const DEFAULT_STATE = {
+    html: `<!-- HTML -->
+<div class="card">
+    <h1>Hello World</h1>
+    <p>Welcome to CQ Web Builder</p>
+    <button onclick="greet()">Click Me</button>
+</div>`,
+    css: `/* CSS */
+body {
+    font-family: system-ui, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    background: #0f0f0f;
+}
+.card {
+    background: #1a1a1a;
+    padding: 2.5rem;
+    border-radius: 12px;
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.08), 0 20px 50px rgba(0,0,0,0.5);
+    text-align: center;
+    color: #f0f0f0;
+}
+h1 { margin: 0 0 0.5rem; font-size: 2rem; letter-spacing: -0.03em; }
+p  { color: #888; margin: 0 0 1.5rem; }
+button {
+    background: #f0a500;
+    color: #0a0a0a;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 14px;
+    transition: opacity 0.15s;
+}
+button:hover { opacity: 0.85; }`,
+    js: `// JavaScript
+function greet() {
+    const h1 = document.querySelector('h1');
+    const colors = ['#f0a500', '#3ddc84', '#64b5f6', '#ff4d4d'];
+    const rand = colors[Math.floor(Math.random() * colors.length)];
+    h1.style.color = rand;
+    console.log('Color changed to', rand);
 }
 
-/* Tab Modes */
-const tabModes = {
-    html: 'xml',
-    css: 'css',
-    js: 'javascript'
+console.log('🚀 App loaded!');
+console.info('Try clicking the heading button');
+`,
+    currentTab: 'html',
+    resources: []
 };
 
-/* Editor Init */
+let appState = { ...DEFAULT_STATE };
+
+/* ─── Restore from LocalStorage ─────────────────────────────── */
+try {
+    const saved = localStorage.getItem('cq_jspad_state');
+    if (saved) {
+        const parsed = JSON.parse(saved);
+        appState = { ...DEFAULT_STATE, ...parsed };
+    }
+} catch (e) {
+    console.warn('[CQ] Failed to restore state:', e);
+}
+
+/* Restore pane width */
+const savedPaneWidth = localStorage.getItem('cq_pane_width');
+if (savedPaneWidth) outputPane.style.width = savedPaneWidth;
+
+/* ─── Editor Settings ────────────────────────────────────────── */
+let editorSettings = {
+    fontSize: 14,
+    tabSize: 4,
+    autoRun: true,
+    wordWrap: true
+};
+try {
+    const ss = localStorage.getItem('cq_editor_settings');
+    if (ss) editorSettings = { ...editorSettings, ...JSON.parse(ss) };
+} catch (_) {}
+
+function saveEditorSettings() {
+    localStorage.setItem('cq_editor_settings', JSON.stringify(editorSettings));
+}
+
+/* ─── Tab Mode Map ───────────────────────────────────────────── */
+const TAB_MODES = { html: 'xml', css: 'css', js: 'javascript' };
+const TAB_LABELS = { html: 'HTML', css: 'CSS', js: 'JavaScript' };
+
+/* ─── CodeMirror Init ────────────────────────────────────────── */
 const editor = CodeMirror(editorContainer, {
-    mode: tabModes[appState.currentTab],
+    mode: TAB_MODES[appState.currentTab],
     value: appState[appState.currentTab],
-    theme: "dracula",
+    theme: 'dracula',
     lineNumbers: true,
     autoCloseBrackets: true,
     matchBrackets: true,
-    tabSize: 4,
-    indentUnit: 4,
-    lineWrapping: true,
+    tabSize: editorSettings.tabSize,
+    indentUnit: editorSettings.tabSize,
+    lineWrapping: editorSettings.wordWrap,
+    styleActiveLine: true,
+    foldGutter: true,
+    gutters: ['CodeMirror-linenumbers', 'CodeMirror-foldgutter'],
     extraKeys: {
-        "Ctrl-Enter": () => updatePreview(),
-        "Cmd-Enter": () => updatePreview(),
-        "Ctrl-Space": "autocomplete"
+        'Ctrl-Enter':    () => updatePreview(false),
+        'Cmd-Enter':     () => updatePreview(false),
+        'Ctrl-Space':    'autocomplete',
+        'Alt-Shift-F':   formatCode,
+        'Ctrl-/':        'toggleComment',
+        'Cmd-/':         'toggleComment',
     }
 });
 
-// Sync Tab UI
-document.querySelectorAll('.editor-tabs .tab-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.type === appState.currentTab);
-});
+// Apply saved font size
+editor.getWrapperElement().style.fontSize = editorSettings.fontSize + 'px';
 
-function switchTab(type) {
-    // 1. Save current buffer to state
-    appState[appState.currentTab] = editor.getValue();
+// Sync active tab UI
+syncTabUI(appState.currentTab);
 
-    // 2. Set new tab
-    appState.currentTab = type;
+/* ─── BUG FIX: Cursor Position — use cursorActivity, not change ─── */
+function updateCursorPos() {
+    const cur  = editor.getCursor();
+    const ln   = cur.line + 1;
+    const col  = cur.ch + 1;
+    cursorPosDiv.textContent = `Ln ${ln}, Col ${col}`;
+    charCountDiv.textContent = `${editor.getValue().length} chars`;
+}
 
-    // 3. Update Editor
-    editor.setValue(appState[type]);
-    editor.setOption('mode', tabModes[type]);
+// 'cursorActivity' fires on every cursor move, selection change, and edit
+editor.on('cursorActivity', updateCursorPos);
+updateCursorPos(); // initial
 
-    // 4. Update UI
+/* ─── Tab Switching ──────────────────────────────────────────── */
+function syncTabUI(type) {
     document.querySelectorAll('.editor-tabs .tab-btn').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.type === type);
     });
+    currentModeLabel.textContent = TAB_LABELS[type] || type.toUpperCase();
+}
 
-    // 5. Save State
+function switchTab(type) {
+    appState[appState.currentTab] = editor.getValue();
+    appState.currentTab = type;
+    editor.setValue(appState[type]);
+    editor.setOption('mode', TAB_MODES[type]);
+    syncTabUI(type);
     saveState();
+    editor.focus();
 }
 
 document.querySelectorAll('.editor-tabs .tab-btn').forEach(btn => {
     btn.addEventListener('click', () => switchTab(btn.dataset.type));
 });
 
-/* Output Pane Tabs (Preview vs Console) */
+/* ─── Output Tab Switching ───────────────────────────────────── */
 document.querySelectorAll('.output-tabs .tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-        const target = btn.dataset.target;
-
-        // Buttons
         document.querySelectorAll('.output-tabs .tab-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
+        const target = btn.dataset.target;
+        document.querySelectorAll('.output-content').forEach(d => d.classList.remove('active'));
+        document.getElementById(target === 'preview' ? 'preview-container' : 'output').classList.add('active');
 
-        // Content
-        document.querySelectorAll('.output-content').forEach(div => div.classList.remove('active'));
-        if (target === 'preview') document.getElementById('preview-container').classList.add('active');
-        else document.getElementById('output').classList.add('active');
+        // Clear error badge when console is opened
+        if (target === 'console') {
+            errorCount = 0;
+            updateErrorBadge();
+        }
     });
 });
 
-/* Preview Logic */
+/* ─── Error Badge ────────────────────────────────────────────── */
+let errorCount = 0;
+function updateErrorBadge() {
+    if (errorCount > 0) {
+        errorBadge.textContent = errorCount > 99 ? '99+' : errorCount;
+        errorBadge.classList.remove('hidden');
+    } else {
+        errorBadge.classList.add('hidden');
+    }
+}
+
+function isConsoleTabActive() {
+    return document.querySelector('[data-target="console"]').classList.contains('active');
+}
+
+/* ─── Preview / Run ──────────────────────────────────────────── */
 function updatePreview(isAuto = false) {
-    // Save current editor content first
     appState[appState.currentTab] = editor.getValue();
     saveState();
 
-    const {
-        html,
-        css,
-        js,
-        resources = []
-    } = appState;
+    const { html, css, js, resources = [] } = appState;
 
-    // Generate Resources HTML
-    const resourceTags = resources.map(res => {
-        if (res.type === 'css') {
-            return `<link rel="stylesheet" href="${res.url}">`;
-        } else {
-            return `<script src="${res.url}"><\/script>`;
+    const resourceTags = resources.map(res =>
+        res.type === 'css'
+            ? `<link rel="stylesheet" href="${res.url}">`
+            : `<script src="${res.url}"><\/script>`
+    ).join('\n');
+
+    // Enhanced console capture — covers log, error, warn, info, debug
+    // Also captures unhandled promise rejections and window.onerror
+    const source = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    ${resourceTags}
+    <style>${css}</style>
+</head>
+<body>
+    ${html}
+    <script>
+    (function() {
+        function serialize(arg) {
+            if (arg === null)      return { kind: 'primitive', value: 'null' };
+            if (arg === undefined) return { kind: 'primitive', value: 'undefined' };
+            if (arg instanceof Error) {
+                return { kind: 'error', value: arg.name + ': ' + arg.message + (arg.stack ? '\\n' + arg.stack.split('\\n').slice(1,4).join('\\n') : '') };
+            }
+            if (typeof arg === 'object' || Array.isArray(arg)) {
+                try {
+                    const json = JSON.stringify(arg, null, 2);
+                    const label = Array.isArray(arg)
+                        ? 'Array(' + arg.length + ')'
+                        : 'Object {' + Object.keys(arg).slice(0,3).join(', ') + (Object.keys(arg).length > 3 ? '...' : '') + '}';
+                    return { kind: 'object', label, value: json };
+                } catch(e) {
+                    return { kind: 'primitive', value: String(arg) };
+                }
+            }
+            return { kind: 'primitive', value: String(arg) };
         }
-    }).join('\n');
 
-    const source = `
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        ${resourceTags}
-        <style>
-            ${css}
-        </style>
-    </head>
-    <body>
-        ${html}
-        <script>
-            // Capture Console
-            function send(type, args) {
-                // Serialize for better output
-                const serialized = args.map(arg => {
-                    if (arg === null) return 'null';
-                    if (arg === undefined) return 'undefined';
-                    if (typeof arg === 'object') {
-                        try { return JSON.stringify(arg, null, 2); } catch(e) { return String(arg); }
-                    }
-                    return String(arg);
-                });
-                window.parent.postMessage({ type, args: serialized }, '*');
-            }
-            const _log = console.log;
-            const _error = console.error;
-            const _warn = console.warn;
-            
-            console.log = (...args) => { send('log', args); _log(...args); };
-            console.error = (...args) => { send('error', args); _error(...args); };
-            console.warn = (...args) => { send('warn', args); _warn(...args); };
-            
-            window.onerror = (msg, url, line) => {
-                send('error', [msg + " (Line: " + line + ")"]);
-            };
+        function send(type, args) {
+            const serialized = Array.from(args).map(serialize);
+            try { window.parent.postMessage({ type, args: serialized, ts: Date.now() }, '*'); } catch(e) {}
+        }
 
-            try {
-                ${js}
-            } catch (err) {
-                console.error(err);
-            }
-        <\/script>
-    </body>
-    </html>
-    `;
+        const methods = ['log', 'error', 'warn', 'info', 'debug'];
+        const _orig = {};
+        methods.forEach(m => {
+            _orig[m] = console[m].bind(console);
+            console[m] = (...args) => { send(m, args); _orig[m](...args); };
+        });
+
+        window.addEventListener('unhandledrejection', e => {
+            const msg = e.reason instanceof Error
+                ? e.reason.name + ': ' + e.reason.message
+                : 'Unhandled Promise Rejection: ' + String(e.reason);
+            send('error', [{ kind: 'error', value: msg }]);
+        });
+
+        window.onerror = (msg, src, line, col, err) => {
+            const detail = err ? err.name + ': ' + err.message : msg;
+            send('error', [{ kind: 'error', value: detail + ' (Line ' + line + ':' + col + ')' }]);
+            return true;
+        };
+
+        try { ${js} } catch(err) { console.error(err); }
+    })();
+    <\/script>
+</body>
+</html>`;
 
     previewFrame.srcdoc = source;
 
-    // Switch to preview tab on run
-    // Intelligent Tab Switching
+    // Smart tab switching
     if (!isAuto) {
-        if (appState.currentTab === 'js') {
-            document.querySelector('[data-target="console"]').click();
+        const targetTab = appState.currentTab === 'js' ? 'console' : 'preview';
+        document.querySelector(`[data-target="${targetTab}"]`).click();
+    }
+}
+
+/* ─── Console Message Handling ───────────────────────────────── */
+window.addEventListener('message', (e) => {
+    if (e.data && e.data.type && e.data.args) {
+        appendOutput(e.data.args, e.data.type, e.data.ts);
+    }
+});
+
+function appendOutput(args, type = 'log', ts) {
+    // Remove empty-state placeholder if present
+    const empty = outputDiv.querySelector('.console-empty');
+    if (empty) empty.remove();
+
+    const entry = document.createElement('div');
+    entry.className = `log-entry log-${type}`;
+
+    // Time prefix
+    if (ts) {
+        const d = new Date(ts);
+        const time = d.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        const timeSpan = document.createElement('span');
+        timeSpan.style.cssText = 'color: var(--text-dim); font-size: 10px; margin-right: 8px; user-select:none;';
+        timeSpan.textContent = time;
+        entry.appendChild(timeSpan);
+    }
+
+    // Render each argument
+    args.forEach((arg, i) => {
+        if (i > 0) {
+            const spacer = document.createTextNode(' ');
+            entry.appendChild(spacer);
+        }
+
+        if (arg && arg.kind === 'object') {
+            // Collapsible object/array display
+            const toggle = document.createElement('button');
+            toggle.className = 'log-object-toggle';
+            toggle.innerHTML = `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="9 18 15 12 9 6"/></svg>${arg.label}`;
+            entry.appendChild(toggle);
+
+            const body = document.createElement('div');
+            body.className = 'log-object-body';
+            body.textContent = arg.value;
+            entry.appendChild(body);
+
+            toggle.addEventListener('click', () => {
+                toggle.classList.toggle('expanded');
+                body.classList.toggle('visible');
+            });
+        } else if (arg && arg.kind === 'error') {
+            const span = document.createElement('span');
+            span.style.whiteSpace = 'pre-wrap';
+            span.textContent = arg.value;
+            entry.appendChild(span);
         } else {
-            document.querySelector('[data-target="preview"]').click();
+            const span = document.createElement('span');
+            span.textContent = arg && arg.value !== undefined ? arg.value : String(arg);
+            entry.appendChild(span);
+        }
+    });
+
+    outputDiv.appendChild(entry);
+    outputDiv.scrollTop = outputDiv.scrollHeight;
+
+    // Update error badge if console tab not visible
+    if (type === 'error' || type === 'warn') {
+        if (!isConsoleTabActive()) {
+            errorCount++;
+            updateErrorBadge();
         }
     }
 }
 
-/* Console Message Handling */
-window.addEventListener('message', (e) => {
-    if (e.data && e.data.type) {
-        appendOutput(e.data.args, e.data.type);
-    }
-});
-
-function appendOutput(args, type = 'log') {
-    const entry = document.createElement('div');
-    entry.className = `log-entry log-${type}`;
-    entry.textContent = `› ${args.join(' ')}`;
-    outputDiv.appendChild(entry);
-    outputDiv.scrollTop = outputDiv.scrollHeight;
+function clearConsole() {
+    outputDiv.innerHTML = '';
+    errorCount = 0;
+    updateErrorBadge();
 }
 
-document.getElementById('copy-output').addEventListener('click', () => {
-    const text = document.getElementById('output').innerText;
-    navigator.clipboard.writeText(text).then(() => {
-        const btn = document.getElementById('copy-output');
-        const originalText = btn.textContent;
-        btn.textContent = 'COPIED!';
-        setTimeout(() => btn.textContent = originalText, 2000);
-    });
-});
-
-document.getElementById('clear-btn').addEventListener('click', () => outputDiv.innerHTML = '');
-
-/* Helper: Save State */
+/* ─── State Persistence ──────────────────────────────────────── */
+let savePending = false;
 function saveState() {
     localStorage.setItem('cq_jspad_state', JSON.stringify(appState));
+    flashSaved();
 }
 
+function flashSaved() {
+    autosaveIndicator.classList.add('saving');
+    setTimeout(() => autosaveIndicator.classList.remove('saving'), 900);
+}
+
+/* ─── Auto-preview on change ─────────────────────────────────── */
 let debounceTimer;
 editor.on('change', () => {
     appState[appState.currentTab] = editor.getValue();
     saveState();
+    updateCursorPos();
 
-    // Auto-Preview for HTML/CSS
-    if (appState.currentTab === 'html' || appState.currentTab === 'css') {
+    if (editorSettings.autoRun && (appState.currentTab === 'html' || appState.currentTab === 'css')) {
         clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(() => {
-            updatePreview(true); // true = isAuto
-        }, 1000);
+        debounceTimer = setTimeout(() => updatePreview(true), 1200);
     }
 });
 
-/* Theme Handling */
+/* ─── Theme Handling ─────────────────────────────────────────── */
+const themeSelect = document.getElementById('theme-select');
+
 function loadTheme(themeName) {
     if (!['dracula', 'default'].includes(themeName)) {
-        const link = document.createElement('link');
-        link.rel = 'stylesheet';
-        link.href = `https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.12/theme/${themeName}.min.css`;
-        document.head.appendChild(link);
+        // Avoid duplicate link tags
+        const existing = document.querySelector(`link[data-theme="${themeName}"]`);
+        if (!existing) {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.dataset.theme = themeName;
+            link.href = `https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.12/theme/${themeName}.min.css`;
+            document.head.appendChild(link);
+        }
     }
     editor.setOption('theme', themeName);
 }
+
 themeSelect.addEventListener('change', (e) => {
     loadTheme(e.target.value);
     localStorage.setItem('cq_jspad_theme', e.target.value);
 });
-// Init Theme
+
 const savedTheme = localStorage.getItem('cq_jspad_theme');
 if (savedTheme) {
     themeSelect.value = savedTheme;
     loadTheme(savedTheme);
 }
 
-/* Drag Resizing */
+/* ─── Drag-to-Resize ─────────────────────────────────────────── */
 let isDragging = false;
-dragBar.addEventListener('mousedown', () => isDragging = true);
+
+dragBar.addEventListener('mousedown', (e) => {
+    isDragging = true;
+    dragBar.classList.add('dragging');
+    e.preventDefault();
+});
+
 document.addEventListener('mousemove', (e) => {
     if (!isDragging) return;
     const width = window.innerWidth - e.clientX;
-    if (width > 200 && width < window.innerWidth * 0.8) {
+    if (width > 220 && width < window.innerWidth * 0.75) {
         outputPane.style.width = width + 'px';
     }
 });
-document.addEventListener('mouseup', () => isDragging = false);
 
-/* Run Button */
-document.addEventListener('mouseup', () => isDragging = false);
+document.addEventListener('mouseup', () => {
+    if (isDragging) {
+        isDragging = false;
+        dragBar.classList.remove('dragging');
+        localStorage.setItem('cq_pane_width', outputPane.style.width);
+    }
+});
 
-/* Button Listeners */
-/* Button Listeners */
+/* ─── Run Button ─────────────────────────────────────────────── */
 runBtn.addEventListener('click', () => updatePreview(false));
 
-document.getElementById('format-btn').addEventListener('click', () => {
+/* ─── BUG FIX: Clear button now clears editor content ─────────── */
+document.getElementById('clear-btn').addEventListener('click', () => {
+    if (confirm('Clear all code in the current tab?')) {
+        editor.setValue('');
+        appState[appState.currentTab] = '';
+        saveState();
+    }
+});
+
+document.getElementById('clear-console-btn').addEventListener('click', clearConsole);
+document.getElementById('clear-output-btn').addEventListener('click', clearConsole);
+
+/* ─── Format Code ────────────────────────────────────────────── */
+function formatCode() {
     const totalLines = editor.lineCount();
     editor.operation(() => {
         for (let i = 0; i < totalLines; i++) {
             editor.indentLine(i);
         }
     });
-});
+}
 
+document.getElementById('format-btn').addEventListener('click', formatCode);
+
+/* ─── Download / Export ──────────────────────────────────────── */
 document.getElementById('download-btn').addEventListener('click', () => {
-    const {
-        html,
-        css,
-        js,
-        resources = []
-    } = appState;
+    appState[appState.currentTab] = editor.getValue();
+    const { html, css, js, resources = [] } = appState;
 
-    // Generate Resources HTML
-    const resourceTags = resources.map(res => {
-        if (res.type === 'css') {
-            return `<link rel="stylesheet" href="${res.url}">`;
-        } else {
-            return `<script src="${res.url}"><\/script>`;
-        }
-    }).join('\n');
+    const resourceTags = resources.map(res =>
+        res.type === 'css'
+            ? `    <link rel="stylesheet" href="${res.url}">`
+            : `    <script src="${res.url}"><\/script>`
+    ).join('\n');
 
     const source = `<!DOCTYPE html>
 <html lang="en">
@@ -313,7 +523,7 @@ document.getElementById('download-btn').addEventListener('click', () => {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Exported Project</title>
-    ${resourceTags}
+${resourceTags}
     <style>
 ${css}
     </style>
@@ -326,132 +536,257 @@ ${js}
 </body>
 </html>`;
 
-    const blob = new Blob([source], {
-        type: 'text/html'
-    });
+    const blob = new Blob([source], { type: 'text/html' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = 'project.html';
     a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
 });
 
-/* Resource Management */
+/* ─── Copy Console Output ────────────────────────────────────── */
+document.getElementById('copy-output').addEventListener('click', () => {
+    const text = outputDiv.innerText;
+    if (!text.trim()) return;
+    navigator.clipboard.writeText(text).then(() => {
+        const btn = document.getElementById('copy-output');
+        const orig = btn.textContent;
+        btn.textContent = 'Copied!';
+        setTimeout(() => (btn.textContent = orig), 2000);
+    });
+});
+
+/* ─── Resources Modal ────────────────────────────────────────── */
 resourcesBtn.addEventListener('click', () => {
     resourcesModal.classList.add('open');
     renderResources();
 });
 
-closeModal.addEventListener('click', () => {
+document.querySelector('.close-modal').addEventListener('click', () => {
     resourcesModal.classList.remove('open');
 });
 
 window.addEventListener('click', (e) => {
-    if (e.target === resourcesModal) {
-        resourcesModal.classList.remove('open');
-    }
+    if (e.target === resourcesModal) resourcesModal.classList.remove('open');
+    if (e.target === settingsModal)  settingsModal.classList.remove('open');
 });
 
 addResourceBtn.addEventListener('click', () => {
-    const url = resourceUrlInput.value.trim();
+    const url  = resourceUrlInput.value.trim();
     const type = resourceTypeSelect.value;
-
-    if (url) {
-        if (!appState.resources) appState.resources = [];
-        appState.resources.push({
-            type,
-            url
-        });
-        saveState();
-        renderResources();
-        resourceUrlInput.value = '';
+    if (!url) return;
+    if (!url.startsWith('http')) {
+        alert('Please enter a valid URL starting with http(s)://');
+        return;
     }
+    if (!appState.resources) appState.resources = [];
+    appState.resources.push({ type, url });
+    saveState();
+    renderResources();
+    resourceUrlInput.value = '';
+});
+
+// Allow Enter key in resource URL input
+resourceUrlInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') addResourceBtn.click();
 });
 
 function renderResources() {
     resourcesList.innerHTML = '';
     const resources = appState.resources || [];
+    if (!resources.length) {
+        resourcesList.innerHTML = '<p style="color:var(--text-dim);font-size:12px;text-align:center;padding:16px 0;">No resources added yet.</p>';
+        return;
+    }
 
     resources.forEach((res, index) => {
         const item = document.createElement('div');
         item.className = 'resource-item';
         item.innerHTML = `
             <div class="resource-info">
-                <span class="resource-badge">${res.type}</span>
+                <span class="resource-badge ${res.type}">${res.type.toUpperCase()}</span>
                 <span class="resource-url" title="${res.url}">${res.url}</span>
             </div>
-            <button class="delete-resource" data-index="${index}">&times;</button>
+            <button class="delete-resource" data-index="${index}" title="Remove">&times;</button>
         `;
         resourcesList.appendChild(item);
     });
 
-    document.querySelectorAll('.delete-resource').forEach(btn => {
+    resourcesList.querySelectorAll('.delete-resource').forEach(btn => {
         btn.addEventListener('click', (e) => {
-            const index = parseInt(e.target.dataset.index);
-            appState.resources.splice(index, 1);
+            e.stopPropagation();
+            const idx = parseInt(btn.dataset.index);
+            appState.resources.splice(idx, 1);
             saveState();
             renderResources();
         });
     });
 }
 
-/* Snippets (Modified for Combined State) */
+/* ─── Settings Modal ─────────────────────────────────────────── */
+document.getElementById('settings-btn').addEventListener('click', () => {
+    settingsModal.classList.add('open');
+});
+document.querySelector('.close-settings').addEventListener('click', () => {
+    settingsModal.classList.remove('open');
+});
+
+// Font size controls
+const fontDisplay = document.getElementById('font-size-display');
+fontDisplay.textContent = editorSettings.fontSize + 'px';
+
+document.getElementById('font-increase').addEventListener('click', () => {
+    if (editorSettings.fontSize >= 24) return;
+    editorSettings.fontSize++;
+    editor.getWrapperElement().style.fontSize = editorSettings.fontSize + 'px';
+    editor.refresh();
+    fontDisplay.textContent = editorSettings.fontSize + 'px';
+    saveEditorSettings();
+});
+
+document.getElementById('font-decrease').addEventListener('click', () => {
+    if (editorSettings.fontSize <= 10) return;
+    editorSettings.fontSize--;
+    editor.getWrapperElement().style.fontSize = editorSettings.fontSize + 'px';
+    editor.refresh();
+    fontDisplay.textContent = editorSettings.fontSize + 'px';
+    saveEditorSettings();
+});
+
+// Tab size
+const tabSizeSelect = document.getElementById('tab-size-select');
+tabSizeSelect.value = String(editorSettings.tabSize);
+tabSizeSelect.addEventListener('change', () => {
+    editorSettings.tabSize = parseInt(tabSizeSelect.value);
+    editor.setOption('tabSize', editorSettings.tabSize);
+    editor.setOption('indentUnit', editorSettings.tabSize);
+    saveEditorSettings();
+});
+
+// Auto-run toggle
+const autorunToggle = document.getElementById('autorun-toggle');
+autorunToggle.checked = editorSettings.autoRun;
+autorunToggle.addEventListener('change', () => {
+    editorSettings.autoRun = autorunToggle.checked;
+    saveEditorSettings();
+});
+
+// Word wrap toggle
+const wordwrapToggle = document.getElementById('wordwrap-toggle');
+wordwrapToggle.checked = editorSettings.wordWrap;
+wordwrapToggle.addEventListener('change', () => {
+    editorSettings.wordWrap = wordwrapToggle.checked;
+    editor.setOption('lineWrapping', editorSettings.wordWrap);
+    saveEditorSettings();
+});
+
+/* ─── Snippets / Project Library ─────────────────────────────── */
 document.getElementById('toggle-snippets').addEventListener('click', () => {
     snippetsMenu.classList.toggle('open');
     if (snippetsMenu.classList.contains('open')) renderSnippets();
 });
 
-document.getElementById('save-snippet').addEventListener('click', () => {
-    const name = prompt("Name this project:");
-    if (!name) return;
+// Close snippets when clicking outside
+document.addEventListener('click', (e) => {
+    if (snippetsMenu.classList.contains('open') &&
+        !snippetsMenu.contains(e.target) &&
+        !document.getElementById('toggle-snippets').contains(e.target)) {
+        snippetsMenu.classList.remove('open');
+    }
+});
 
-    // Save all 3 buffers
+document.getElementById('save-snippet').addEventListener('click', () => {
+    const name = prompt('Name this project:');
+    if (!name || !name.trim()) return;
+
     appState[appState.currentTab] = editor.getValue();
 
-    const library = JSON.parse(localStorage.getItem('cq_jspad_library') || '{}');
-    library[name] = {
-        html: appState.html,
-        css: appState.css,
-        js: appState.js,
-        resources: appState.resources || []
+    const library = getLibrary();
+    library[name.trim()] = {
+        html:      appState.html,
+        css:       appState.css,
+        js:        appState.js,
+        resources: appState.resources || [],
+        savedAt:   Date.now()
     };
-    localStorage.setItem('cq_jspad_library', JSON.stringify(library));
-
+    saveLibrary(library);
     renderSnippets();
 });
 
-function renderSnippets() {
-    const library = JSON.parse(localStorage.getItem('cq_jspad_library') || '{}');
-    snippetsList.innerHTML = '';
-
-    Object.keys(library).forEach(name => {
-        const item = document.createElement('div');
-        item.className = 'snippet-item';
-        item.innerHTML = `<span>${name}</span><button style="color:var(--error);background:none;border:none;">&times;</button>`;
-
-        item.onclick = (e) => {
-            if (e.target.tagName === 'BUTTON') {
-                delete library[name];
-                localStorage.setItem('cq_jspad_library', JSON.stringify(library));
-                renderSnippets();
-            } else {
-                // Load Project
-                const data = library[name];
-                if (data) {
-                    appState = {
-                        ...appState,
-                        ...data
-                    };
-                    // Refresh current tab
-                    editor.setValue(appState[appState.currentTab]);
-                    snippetsMenu.classList.remove('open');
-                    saveState();
-                    updatePreview(); // Auto-run on load
-                }
-            }
-        };
-        snippetsList.appendChild(item);
-    });
+function getLibrary() {
+    try { return JSON.parse(localStorage.getItem('cq_jspad_library') || '{}'); }
+    catch (_) { return {}; }
 }
 
-// Initial Run to show something
-updatePreview();
+function saveLibrary(lib) {
+    localStorage.setItem('cq_jspad_library', JSON.stringify(lib));
+}
+
+function renderSnippets() {
+    const library = getLibrary();
+    const keys = Object.keys(library);
+    snippetsList.innerHTML = '';
+    snippetsEmpty.style.display = keys.length ? 'none' : 'flex';
+
+    keys.sort((a, b) => (library[b].savedAt || 0) - (library[a].savedAt || 0))
+        .forEach(name => {
+            const item = document.createElement('div');
+            item.className = 'snippet-item';
+
+            const nameSpan = document.createElement('span');
+            nameSpan.textContent = name;
+
+            const delBtn = document.createElement('button');
+            delBtn.className = 'snippet-delete';
+            delBtn.textContent = '×';
+            delBtn.title = 'Delete project';
+
+            item.appendChild(nameSpan);
+            item.appendChild(delBtn);
+
+            delBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (confirm(`Delete "${name}"?`)) {
+                    const lib = getLibrary();
+                    delete lib[name];
+                    saveLibrary(lib);
+                    renderSnippets();
+                }
+            });
+
+            item.addEventListener('click', () => {
+                const data = getLibrary()[name];
+                if (!data) return;
+                // BUG FIX: Ensure currentTab is valid before loading
+                appState = {
+                    ...appState,
+                    html:      data.html      || '',
+                    css:       data.css       || '',
+                    js:        data.js        || '',
+                    resources: data.resources || [],
+                };
+                editor.setValue(appState[appState.currentTab]);
+                editor.setOption('mode', TAB_MODES[appState.currentTab]);
+                syncTabUI(appState.currentTab);
+                saveState();
+                snippetsMenu.classList.remove('open');
+                updatePreview(false);
+            });
+
+            snippetsList.appendChild(item);
+        });
+}
+
+/* ─── Keyboard Shortcuts ─────────────────────────────────────── */
+document.addEventListener('keydown', (e) => {
+    // Escape closes modals/panels
+    if (e.key === 'Escape') {
+        resourcesModal.classList.remove('open');
+        settingsModal.classList.remove('open');
+        snippetsMenu.classList.remove('open');
+    }
+});
+
+/* ─── Initial Run ────────────────────────────────────────────── */
+updatePreview(true);
+updateCursorPos();

@@ -4,27 +4,33 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon"
-        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
-    <title>CQ Web builder | CoffeeQuote</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+    <title>CQ Web Builder | CoffeeQuote</title>
 
     <!-- Core CodeMirror -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.12/codemirror.min.css" />
-    <link rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.12/addon/hint/show-hint.min.css" />
-    <link rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.12/addon/dialog/dialog.min.css" />
-    <link rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.12/addon/search/matchesonscrollbar.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.12/addon/hint/show-hint.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.12/addon/dialog/dialog.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.12/addon/search/matchesonscrollbar.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.12/addon/fold/foldgutter.min.css">
 
-    <!-- Core CodeMirror -->
+    <!-- Core CodeMirror JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.12/codemirror.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.12/addon/edit/closebrackets.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.12/addon/edit/matchbrackets.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.12/addon/hint/show-hint.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.12/addon/hint/javascript-hint.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.12/addon/hint/html-hint.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.12/addon/hint/css-hint.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.12/addon/dialog/dialog.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.12/addon/search/searchcursor.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.12/addon/search/search.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.12/addon/fold/foldcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.12/addon/fold/foldgutter.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.12/addon/fold/brace-fold.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.12/addon/fold/xml-fold.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.12/addon/comment/comment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.12/addon/selection/active-line.min.js"></script>
 
     <!-- CodeMirror Modes -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.12/mode/xml/xml.min.js"></script>
@@ -32,57 +38,78 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.12/mode/javascript/javascript.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.12/mode/htmlmixed/htmlmixed.min.js"></script>
 
-    <!-- Default Theme -->
+    <!-- Themes -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.12/theme/dracula.min.css" />
 
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Fira+Code:wght@400;500&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 
     <link href="style.css" rel="stylesheet" />
-
 </head>
 
 <body>
-    <!-- Sidebar  -->
+    <!-- Sidebar -->
     <div class="sidebar">
-        <div class="side-icon active" title="Editor">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
-                <polyline points="14 2 14 8 20 8" /></svg>
+        <div class="sidebar-logo">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
         </div>
-        <div class="side-icon" id="toggle-snippets" title="Saved Snippets">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" /></svg>
-        </div>
-        <div class="side-icon" id="format-btn" title="Format Code (Beautify)">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="16 18 22 12 16 6" />
-                <polyline points="8 6 2 12 8 18" /></svg>
-        </div>
-        <div class="side-icon" id="download-btn" title="Export .js File">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                <polyline points="7 10 12 15 17 10" />
-                <line x1="12" y1="15" x2="12" y2="3" /></svg>
-        </div>
-        <div class="side-icon" id="resources-btn" title="External Resources">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path
-                    d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z">
-                </path>
-                <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
-                <line x1="12" y1="22.08" x2="12" y2="12"></line>
-            </svg>
+        <div class="sidebar-nav">
+            <div class="side-icon active" id="editor-icon" title="Editor">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                    <line x1="16" y1="13" x2="8" y2="13"/>
+                    <line x1="16" y1="17" x2="8" y2="17"/>
+                    <polyline points="10 9 9 9 8 9"/>
+                </svg>
+            </div>
+            <div class="side-icon" id="toggle-snippets" title="Project Library">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+                </svg>
+            </div>
+            <div class="side-icon" id="format-btn" title="Format Code (Alt+Shift+F)">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="16 18 22 12 16 6"/>
+                    <polyline points="8 6 2 12 8 18"/>
+                </svg>
+            </div>
+            <div class="side-icon" id="download-btn" title="Export HTML File">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="7 10 12 15 17 10"/>
+                    <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+            </div>
+            <div class="side-icon" id="resources-btn" title="External Resources">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                    <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+                    <line x1="12" y1="22.08" x2="12" y2="12"/>
+                </svg>
+            </div>
+            <div class="side-icon" id="settings-btn" title="Settings">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3"/>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                </svg>
+            </div>
         </div>
     </div>
 
-    <!-- Snippets Menu -->
+    <!-- Snippets Panel -->
     <div id="snippets-menu">
-        <h3 style="margin-top:0; font-size: 1.1rem; color: var(--accent);">Your Library</h3>
-        <div id="snippets-list" style="max-height: 70vh; overflow-y: auto;"></div>
-        <button class="btn-primary" style="width:100%; margin-top:20px; justify-content: center;" id="save-snippet">Save
-            Current Work</button>
+        <div class="panel-header">
+            <span class="panel-title">Project Library</span>
+            <button id="save-snippet" class="btn-icon-text">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Save
+            </button>
+        </div>
+        <div id="snippets-list"></div>
+        <div id="snippets-empty" class="empty-state">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.3"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+            <p>No saved projects yet.<br>Save your current work to get started.</p>
+        </div>
     </div>
 
     <!-- Resources Modal -->
@@ -90,20 +117,72 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3>External Resources</h3>
-                <span class="close-modal">&times;</span>
+                <button class="close-modal btn-close">&times;</button>
             </div>
             <div class="modal-body">
+                <p class="modal-hint">Add CSS or JS libraries from a CDN to your project.</p>
                 <div class="resource-input-group">
-                    <input type="text" id="resource-url"
-                        placeholder="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+                    <input type="text" id="resource-url" placeholder="https://cdn.jsdelivr.net/npm/library.min.css" />
                     <select id="resource-type">
-                        <option value="css">CSS (Link)</option>
-                        <option value="js">JS (Script)</option>
+                        <option value="css">CSS</option>
+                        <option value="js">JS</option>
                     </select>
                     <button id="add-resource-btn" class="btn-primary">Add</button>
                 </div>
-                <div id="resources-list">
-                    <!-- Resources will be listed here -->
+                <div id="resources-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Settings</h3>
+                <button class="close-settings btn-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="settings-group">
+                    <label class="settings-label">Editor Theme</label>
+                    <select id="theme-select" class="settings-select">
+                        <option value="dracula">Dracula</option>
+                        <option value="monokai">Monokai</option>
+                        <option value="material-ocean">Material Ocean</option>
+                        <option value="nord">Nord</option>
+                        <option value="midnight">Midnight</option>
+                        <option value="abcdef">ABCDEF</option>
+                        <option value="ayu-mirage">Ayu Mirage</option>
+                    </select>
+                </div>
+                <div class="settings-group">
+                    <label class="settings-label">Font Size</label>
+                    <div class="font-size-control">
+                        <button id="font-decrease">−</button>
+                        <span id="font-size-display">14px</span>
+                        <button id="font-increase">+</button>
+                    </div>
+                </div>
+                <div class="settings-group">
+                    <label class="settings-label">Tab Size</label>
+                    <select id="tab-size-select" class="settings-select">
+                        <option value="2">2 spaces</option>
+                        <option value="4" selected>4 spaces</option>
+                        <option value="8">8 spaces</option>
+                    </select>
+                </div>
+                <div class="settings-group">
+                    <label class="settings-label">Auto-run on change</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="autorun-toggle" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="settings-group">
+                    <label class="settings-label">Word Wrap</label>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="wordwrap-toggle" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
                 </div>
             </div>
         </div>
@@ -114,98 +193,105 @@
         <!-- App Header -->
         <header class="app-header">
             <div class="logo">
-                <span style="color: var(--accent); font-size: 1.5rem;">⚡</span> CQ Web Builder <span
-                    style="font-weight: 300; opacity: 0.7;">Pro</span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                <span class="logo-text">CQ<span class="logo-sub">WebBuilder</span></span>
             </div>
-            <div class="controls">
-                <select id="theme-select" class="btn-secondary">
-                    <option value="dracula">Dracula</option>
-                    <option value="monokai">Monokai</option>
-                    <option value="material-ocean">Material Ocean</option>
-                    <option value="nord">Nord</option>
-                    <option value="midnight">Midnight</option>
-                    <option value="abcdef">ABCDEF</option>
-                    <option value="ayu-mirage">Ayu Mirage</option>
-                </select>
-                <button class="btn-secondary" id="clear-btn">Clear</button>
+            <div class="header-actions">
+                <button class="btn-ghost" id="clear-console-btn" title="Clear Console">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+                    Clear Console
+                </button>
+                <button class="btn-ghost" id="clear-btn" title="Clear All Code">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    Clear
+                </button>
+                <div class="divider-v"></div>
                 <button class="btn-primary" id="run-btn">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                        <polygon points="5 3 19 12 5 21 5 3" /></svg>
-                    Run Code
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                    Run
+                    <kbd>⌘↵</kbd>
                 </button>
             </div>
         </header>
 
         <!-- Workspace -->
         <div class="workspace">
-            <section class="pane" id="code-pane" style="flex: 1;">
+            <!-- Code Editor Pane -->
+            <section class="pane" id="code-pane">
                 <div class="pane-header">
                     <div class="editor-tabs">
-                        <button class="tab-btn active" data-type="html">HTML</button>
-                        <button class="tab-btn" data-type="css">CSS</button>
-                        <button class="tab-btn" data-type="js">JS</button>
+                        <button class="tab-btn active" data-type="html">
+                            <span class="tab-dot html-dot"></span>HTML
+                        </button>
+                        <button class="tab-btn" data-type="css">
+                            <span class="tab-dot css-dot"></span>CSS
+                        </button>
+                        <button class="tab-btn" data-type="js">
+                            <span class="tab-dot js-dot"></span>JS
+                        </button>
+                    </div>
+                    <div class="pane-actions">
+                        <button class="btn-ghost-sm" id="toggle-fold-btn" title="Fold All">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 9 2 12 4 15"/><polyline points="20 9 22 12 20 15"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
+                        </button>
                     </div>
                 </div>
-                <div id="editor-container" style="flex:1;"></div>
+                <div id="editor-container"></div>
             </section>
 
-            <div class="resizer" id="drag-bar"></div>
+            <div class="resizer" id="drag-bar">
+                <div class="resizer-handle"></div>
+            </div>
 
-            <section class="pane" id="output-pane" style="width: 35%;">
+            <!-- Output Pane -->
+            <section class="pane" id="output-pane">
                 <div class="pane-header">
                     <div class="output-tabs">
-                        <button class="tab-btn active" data-target="preview">Preview</button>
-                        <button class="tab-btn" data-target="console">Console</button>
+                        <button class="tab-btn active" data-target="preview">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                            Preview
+                        </button>
+                        <button class="tab-btn" data-target="console">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+                            Console
+                            <span id="error-badge" class="error-badge hidden">0</span>
+                        </button>
                     </div>
-                    <button id="copy-output"
-                        style="background:transparent; border:none; color:var(--text-dim); cursor:pointer; font-size: 10px;">COPY</button>
+                    <div class="pane-actions">
+                        <button id="copy-output" class="btn-ghost-sm" title="Copy console output">Copy</button>
+                        <button id="clear-output-btn" class="btn-ghost-sm" title="Clear console">Clear</button>
+                    </div>
                 </div>
-                <!-- Preview Area -->
-                <div id="preview-container" class="output-content active" style="flex:1; background: white;">
-                    <iframe id="preview-frame" style="width:100%; height:100%; border:none;"></iframe>
+                <div id="preview-container" class="output-content active">
+                    <iframe id="preview-frame" sandbox="allow-scripts allow-modals allow-forms allow-same-origin" style="width:100%; height:100%; border:none; background:white;"></iframe>
                 </div>
-                <!-- Console Area -->
                 <div id="output" class="output-content"></div>
             </section>
         </div>
 
         <!-- Status Bar -->
         <footer class="status-bar">
-            <div id="cursor-pos">Ln 1, Col 1</div>
-            <div>UTF-8 • JavaScript (ES6+) • Ctrl+F to Search</div>
+            <div class="status-left">
+                <span id="cursor-pos">Ln 1, Col 1</span>
+                <span class="status-sep">·</span>
+                <span id="char-count">0 chars</span>
+            </div>
+            <div class="status-center">
+                <span id="current-mode-label">HTML</span>
+            </div>
+            <div class="status-right">
+                <span>UTF-8</span>
+                <span class="status-sep">·</span>
+                <span>Ctrl+F Search</span>
+                <span class="status-sep">·</span>
+                <span id="autosave-indicator">
+                    <svg width="8" height="8" viewBox="0 0 10 10"><circle cx="5" cy="5" r="4" fill="var(--success)"/></svg>
+                    Saved
+                </span>
+            </div>
         </footer>
     </main>
 
-    <!-- CodeMirror & Addons -->
-
-
     <script src="script.js"></script>
-
-    <script>
-        // Live Reload | Developer Mode 
-        (function connect() {
-            console.log("🔄 Connecting to Live Reload...");
-            const ws = new WebSocket("ws://localhost:8765");
-
-            ws.onopen = () => console.log("✅ Live Reload Connected");
-
-            ws.onmessage = () => {
-                console.log("⚡ Refreshing...");
-                location.reload();
-            };
-
-            ws.onclose = () => {
-                console.log("❌ Connection lost. Reconnecting in 1s...");
-                // Try to reconnect in 1 second
-                setTimeout(connect, 1000);
-            };
-
-            ws.onerror = (err) => {
-                console.error("WebSocket error", err);
-                ws.close();
-            };
-        })();
-    </script>
 </body>
-
 </html>
