@@ -51,7 +51,7 @@ const DEFAULT_STATE = {
 <div class="card">
     <h1>Hello World</h1>
     <p>Welcome to CQ Web Builder</p>
-    <button onclick="greet()">Click Me</button>
+    <button id="greet-btn">Click Me</button>
 </div>`,
     css: `/* CSS */
 body {
@@ -86,16 +86,17 @@ button {
 }
 button:hover { opacity: 0.85; }`,
     js: `// JavaScript
-function greet() {
+const colors = ['#f0a500', '#3ddc84', '#64b5f6', '#ff4d4d'];
+
+document.getElementById('greet-btn').addEventListener('click', () => {
     const h1 = document.querySelector('h1');
-    const colors = ['#f0a500', '#3ddc84', '#64b5f6', '#ff4d4d'];
     const rand = colors[Math.floor(Math.random() * colors.length)];
     h1.style.color = rand;
     console.log('Color changed to', rand);
-}
+});
 
 console.log('🚀 App loaded!');
-console.info('Try clicking the heading button');
+console.info('Click the button to change the heading color');
 `,
     currentTab: 'html',
     resources: []
@@ -168,6 +169,10 @@ editor.getWrapperElement().style.fontSize = editorSettings.fontSize + 'px';
 // Sync active tab UI
 syncTabUI(appState.currentTab);
 
+// Guard: CodeMirror fires a 'change' event when setValue() is called during init.
+// We don't want that to trigger an auto-preview — only real user edits should.
+let editorReady = false;
+
 /* ─── BUG FIX: Cursor Position — use cursorActivity, not change ─── */
 function updateCursorPos() {
     const cur  = editor.getCursor();
@@ -192,8 +197,13 @@ function syncTabUI(type) {
 function switchTab(type) {
     appState[appState.currentTab] = editor.getValue();
     appState.currentTab = type;
+
+    // Suppress the 'change' event that setValue fires — it's not a user edit
+    suppressChange = true;
     editor.setValue(appState[type]);
     editor.setOption('mode', TAB_MODES[type]);
+    setTimeout(() => { suppressChange = false; }, 0);
+
     syncTabUI(type);
     saveState();
     editor.focus();
@@ -239,6 +249,9 @@ function isConsoleTabActive() {
 function updatePreview(isAuto = false) {
     appState[appState.currentTab] = editor.getValue();
     saveState();
+
+    // Always clear console before a fresh run so stale output doesn't accumulate
+    clearConsole();
 
     const { html, css, js, resources = [] } = appState;
 
@@ -307,7 +320,13 @@ function updatePreview(isAuto = false) {
             return true;
         };
 
-        try { ${js} } catch(err) { console.error(err); }
+        // Run user code in a way that keeps named functions on window scope
+        // so inline onclick handlers (e.g. onclick="greet()") can find them.
+        // We do this by eval-ing in global scope via indirect eval.
+        try {
+            const run = (0, eval);
+            run(${JSON.stringify(js)});
+        } catch(err) { console.error(err); }
     })();
     <\/script>
 </body>
@@ -413,8 +432,16 @@ function flashSaved() {
 }
 
 /* ─── Auto-preview on change ─────────────────────────────────── */
+// Mark editor as ready after a tick so the initial setValue() during
+// CodeMirror construction doesn't fire the auto-preview.
+setTimeout(() => { editorReady = true; }, 0);
+
 let debounceTimer;
+let suppressChange = false; // set true during programmatic tab switches
+
 editor.on('change', () => {
+    if (!editorReady || suppressChange) return;
+
     appState[appState.currentTab] = editor.getValue();
     saveState();
     updateCursorPos();
@@ -788,5 +815,6 @@ document.addEventListener('keydown', (e) => {
 });
 
 /* ─── Initial Run ────────────────────────────────────────────── */
-updatePreview(true);
-updateCursorPos();
+// Single run on startup. The setTimeout ensures editorReady is true
+// and the suppressChange flag has settled before we touch anything.
+setTimeout(() => updatePreview(true), 0);
