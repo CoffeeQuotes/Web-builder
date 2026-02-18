@@ -9,13 +9,22 @@ const dragBar = document.getElementById('drag-bar');
 const outputPane = document.getElementById('output-pane');
 const snippetsMenu = document.getElementById('snippets-menu');
 const snippetsList = document.getElementById('snippets-list');
+const resourcesBtn = document.getElementById('resources-btn');
+const resourcesModal = document.getElementById('resources-modal');
+const closeModal = document.querySelector('.close-modal');
+const addResourceBtn = document.getElementById('add-resource-btn');
+const resourceUrlInput = document.getElementById('resource-url');
+const resourceTypeSelect = document.getElementById('resource-type');
+const resourcesList = document.getElementById('resources-list');
+const cursorPosDiv = document.getElementById('cursor-pos');
 
 /* State */
 let appState = {
     html: '<!-- HTML -->\n<div class="card">\n    <h1>Hello World</h1>\n    <p>Welcome to CQ JSpad</p>\n</div>',
     css: '/* CSS */\nbody {\n    font-family: "Inter", sans-serif;\n    display: flex;\n    justify-content: center;\n    align-items: center;\n    height: 100vh;\n    margin: 0;\n    background: #f0f2f5;\n}\n.card {\n    background: white;\n    padding: 2rem;\n    border-radius: 8px;\n    box-shadow: 0 4px 6px rgba(0,0,0,0.1);\n    text-align: center;\n}',
     js: '// JavaScript\nconsole.log("🚀 App Started!");\n\nconst h1 = document.querySelector("h1");\nh1.onclick = () => {\n    h1.style.color = "#7c4dff";\n    console.log("Clicked header!");\n};',
-    currentTab: 'html'
+    currentTab: 'html',
+    resources: [] // [ { type: 'css'|'js', url: '...' } ]
 };
 
 /* Restore from LocalStorage */
@@ -111,8 +120,18 @@ function updatePreview(isAuto = false) {
     const {
         html,
         css,
-        js
+        js,
+        resources = []
     } = appState;
+
+    // Generate Resources HTML
+    const resourceTags = resources.map(res => {
+        if (res.type === 'css') {
+            return `<link rel="stylesheet" href="${res.url}">`;
+        } else {
+            return `<script src="${res.url}"><\/script>`;
+        }
+    }).join('\n');
 
     const source = `
     <!DOCTYPE html>
@@ -120,6 +139,7 @@ function updatePreview(isAuto = false) {
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        ${resourceTags}
         <style>
             ${css}
         </style>
@@ -274,14 +294,26 @@ document.getElementById('download-btn').addEventListener('click', () => {
     const {
         html,
         css,
-        js
+        js,
+        resources = []
     } = appState;
+
+    // Generate Resources HTML
+    const resourceTags = resources.map(res => {
+        if (res.type === 'css') {
+            return `<link rel="stylesheet" href="${res.url}">`;
+        } else {
+            return `<script src="${res.url}"><\/script>`;
+        }
+    }).join('\n');
+
     const source = `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Exported Project</title>
+    ${resourceTags}
     <style>
 ${css}
     </style>
@@ -303,6 +335,65 @@ ${js}
     a.click();
 });
 
+/* Resource Management */
+resourcesBtn.addEventListener('click', () => {
+    resourcesModal.classList.add('open');
+    renderResources();
+});
+
+closeModal.addEventListener('click', () => {
+    resourcesModal.classList.remove('open');
+});
+
+window.addEventListener('click', (e) => {
+    if (e.target === resourcesModal) {
+        resourcesModal.classList.remove('open');
+    }
+});
+
+addResourceBtn.addEventListener('click', () => {
+    const url = resourceUrlInput.value.trim();
+    const type = resourceTypeSelect.value;
+
+    if (url) {
+        if (!appState.resources) appState.resources = [];
+        appState.resources.push({
+            type,
+            url
+        });
+        saveState();
+        renderResources();
+        resourceUrlInput.value = '';
+    }
+});
+
+function renderResources() {
+    resourcesList.innerHTML = '';
+    const resources = appState.resources || [];
+
+    resources.forEach((res, index) => {
+        const item = document.createElement('div');
+        item.className = 'resource-item';
+        item.innerHTML = `
+            <div class="resource-info">
+                <span class="resource-badge">${res.type}</span>
+                <span class="resource-url" title="${res.url}">${res.url}</span>
+            </div>
+            <button class="delete-resource" data-index="${index}">&times;</button>
+        `;
+        resourcesList.appendChild(item);
+    });
+
+    document.querySelectorAll('.delete-resource').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const index = parseInt(e.target.dataset.index);
+            appState.resources.splice(index, 1);
+            saveState();
+            renderResources();
+        });
+    });
+}
+
 /* Snippets (Modified for Combined State) */
 document.getElementById('toggle-snippets').addEventListener('click', () => {
     snippetsMenu.classList.toggle('open');
@@ -320,7 +411,8 @@ document.getElementById('save-snippet').addEventListener('click', () => {
     library[name] = {
         html: appState.html,
         css: appState.css,
-        js: appState.js
+        js: appState.js,
+        resources: appState.resources || []
     };
     localStorage.setItem('cq_jspad_library', JSON.stringify(library));
 

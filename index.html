@@ -66,6 +66,15 @@
                 <polyline points="7 10 12 15 17 10" />
                 <line x1="12" y1="15" x2="12" y2="3" /></svg>
         </div>
+        <div class="side-icon" id="resources-btn" title="External Resources">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path
+                    d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z">
+                </path>
+                <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                <line x1="12" y1="22.08" x2="12" y2="12"></line>
+            </svg>
+        </div>
     </div>
 
     <!-- Snippets Menu -->
@@ -74,6 +83,30 @@
         <div id="snippets-list" style="max-height: 70vh; overflow-y: auto;"></div>
         <button class="btn-primary" style="width:100%; margin-top:20px; justify-content: center;" id="save-snippet">Save
             Current Work</button>
+    </div>
+
+    <!-- Resources Modal -->
+    <div id="resources-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>External Resources</h3>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="resource-input-group">
+                    <input type="text" id="resource-url"
+                        placeholder="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+                    <select id="resource-type">
+                        <option value="css">CSS (Link)</option>
+                        <option value="js">JS (Script)</option>
+                    </select>
+                    <button id="add-resource-btn" class="btn-primary">Add</button>
+                </div>
+                <div id="resources-list">
+                    <!-- Resources will be listed here -->
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Main Wrapper -->
