@@ -1,0 +1,329 @@
+/* landing.css - Styles for Marketing and Compliance Pages */
+/* Variables matching existing aesthetic */
+:root {
+    --bg-main: #1E1E2E;
+    --bg-panel: #282A36;
+    --bg-darker: #151521;
+    --border: #3B4252;
+    --text-main: #F8F8F2;
+    --text-muted: #A1A9B6;
+    
+    --primary: #8BE9FD;
+    --primary-hover: #6ED7EB;
+    --accent: #FF79C6;
+    --success: #50FA7B;
+    --warning: #F1FA8C;
+    --error: #FF5555;
+    
+    --font-ui: 'DM Sans', system-ui, -apple-system, sans-serif;
+    --font-mono: 'IBM Plex Mono', 'Fira Code', monospace;
+    
+    --shadow-sm: 0 2px 4px rgba(0,0,0,0.2);
+    --shadow-md: 0 4px 8px rgba(0,0,0,0.3);
+    --shadow-lg: 0 10px 20px rgba(0,0,0,0.4);
+    
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: var(--font-ui);
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    line-height: 1.6;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header */
+.site-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 5%;
+    background-color: var(--bg-panel);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.logo-link {
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.logo-icon {
+    color: var(--accent);
+}
+
+.logo-text {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.logo-sub {
+    font-weight: 400;
+    color: var(--text-muted);
+}
+
+.nav-links {
+    display: flex;
+    gap: 2rem;
+    align-items: center;
+}
+
+.nav-links a {
+    text-decoration: none;
+    color: var(--text-main);
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.nav-links a:hover {
+    color: var(--primary);
+}
+
+/* Buttons */
+.btn-primary {
+    background-color: var(--primary);
+    color: var(--bg-main);
+    padding: 0.6rem 1.2rem;
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: var(--font-ui);
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(139, 233, 253, 0.3);
+}
+
+.btn-large {
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+    border-radius: var(--radius-md);
+}
+
+/* Hero Section */
+.hero {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 4rem 1rem;
+    background: radial-gradient(circle at top, var(--bg-panel) 0%, var(--bg-main) 100%);
+}
+
+.hero h1 {
+    font-size: 3.5rem;
+    line-height: 1.2;
+    margin-bottom: 1.5rem;
+    background: linear-gradient(135deg, var(--text-main) 0%, var(--primary) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    max-width: 800px;
+}
+
+.hero-subtitle {
+    font-size: 1.25rem;
+    color: var(--text-muted);
+    max-width: 600px;
+    margin-bottom: 3rem;
+}
+
+/* Features Section */
+.features {
+    padding: 5rem 5%;
+    background-color: var(--bg-darker);
+}
+
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.feature-card {
+    background-color: var(--bg-panel);
+    padding: 2rem;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    transition: transform 0.2s;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+}
+
+.feature-icon {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 1rem;
+    color: var(--accent);
+}
+
+.feature-card h3 {
+    margin-bottom: 1rem;
+    font-size: 1.25rem;
+}
+
+.feature-card p {
+    color: var(--text-muted);
+}
+
+/* Content Pages (Privacy, Terms) */
+.page-content {
+    max-width: 800px;
+    margin: 4rem auto;
+    padding: 0 2rem;
+    flex: 1;
+}
+
+.page-header {
+    text-align: center;
+    margin-bottom: 3rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.page-header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    color: var(--primary);
+}
+
+.page-header p {
+    color: var(--text-muted);
+}
+
+.content-body section {
+    margin-bottom: 2.5rem;
+}
+
+.content-body h2 {
+    color: var(--text-main);
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+}
+
+.content-body p, .content-body ul {
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+}
+
+.content-body ul {
+    padding-left: 1.5rem;
+}
+
+.content-body li {
+    margin-bottom: 0.5rem;
+}
+
+/* Footer */
+.site-footer {
+    background-color: var(--bg-darker);
+    border-top: 1px solid var(--border);
+    padding: 2rem 5%;
+    text-align: center;
+    color: var(--text-muted);
+}
+
+.footer-links {
+    margin-top: 1rem;
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+}
+
+.footer-links a {
+    color: var(--text-muted);
+    text-decoration: none;
+}
+
+.footer-links a:hover {
+    color: var(--primary);
+}
+
+/* Cookie Banner */
+.cookie-banner {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: var(--bg-panel);
+    border-top: 1px solid var(--border);
+    padding: 1rem 5%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 1000;
+    box-shadow: var(--shadow-lg);
+}
+
+.cookie-content {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.cookie-banner p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+.cookie-banner a {
+    color: var(--primary);
+}
+
+.btn-secondary {
+    background-color: transparent;
+    border: 1px solid var(--text-muted);
+    color: var(--text-main);
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-family: var(--font-ui);
+    transition: all 0.2s;
+}
+
+.btn-secondary:hover {
+    border-color: var(--text-main);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .site-header {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    .hero h1 {
+        font-size: 2.5rem;
+    }
+    .cookie-banner {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+}
